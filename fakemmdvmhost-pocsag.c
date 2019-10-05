@@ -10,9 +10,10 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define RXPORT	3800
-#define TXPORT	4800
-#define IPADDR	"127.0.0.1"
+#define RXPORT		3800
+#define TXPORT		4800
+#define IPADDR		"127.0.0.1"
+#define KEEPALIVE_DELAY	5	/* seconds */
 
 static int trxsocket;
 
@@ -64,11 +65,17 @@ static int packet_receive(struct sockaddr_in *addr, unsigned char *buf, int bufs
 
 	/* get message from DAPNETGateway */
 	fromlen = sizeof(fromaddr);
-	ssz = recvfrom(trxsocket, buf, bufsize, 0,
+	ssz = recvfrom(trxsocket, buf, bufsize, MSG_DONTWAIT,
 		       (struct sockaddr *)&fromaddr, &fromlen);
 	err = ssz;
-	if (err < 0)
+	if (err < 0) {
+		/* no message, wait and retry */
+		if (errno == EAGAIN) {
+			sleep(KEEPALIVE_DELAY);
+			err = 0;
+		}
 		goto fin0;
+	}
 
 	/* check sender, header */
 	if (addr->sin_addr.s_addr != fromaddr.sin_addr.s_addr ||
