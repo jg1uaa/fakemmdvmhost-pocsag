@@ -190,11 +190,11 @@ int main(int argc, char *argv[])
 	struct addrinfo *txaddr, *rxaddr;
 	unsigned char buf[2048];
 
-	err = acquire_addrinfo(IPADDR, TXPORT, &txaddr);
+	err = acquire_addrinfo((argc < 2) ? IPADDR : argv[1], TXPORT, &txaddr);
 	if (err)
 		goto fin0;
 
-	err = acquire_addrinfo(IPADDR, RXPORT, &rxaddr);
+	err = acquire_addrinfo((argc < 2) ? IPADDR : argv[1], RXPORT, &rxaddr);
 	if (err)
 		goto fin1;
 
